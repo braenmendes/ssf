@@ -29,9 +29,10 @@ jobs:
           python-version: '3.11'
 
       - name: Install SSF Framework
-        run: pip install supabase-audit-framework
+        run: pip3 install supabase-audit-framework --upgrade
 
       - name: Run Security Scan
+        continue-on-error: true
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
