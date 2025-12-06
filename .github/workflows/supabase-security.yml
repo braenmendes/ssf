@@ -6,15 +6,15 @@ on:
   pull_request:
     branches: [ "main" ]
   schedule:
-    - cron: '0 0 * * 0' 
+    - cron: '0 0 * * 0'
 
 jobs:
   security-audit:
-    name: SSF Scan
+    name: SSF Scan & Report
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write 
+      security-events: write
 
     steps:
       - name: Checkout code
@@ -25,10 +25,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install SSF
+      - name: Install SSF Framework
         run: pip3 install supabase-audit-framework --upgrade
 
-      - name: Run Supabase Security Scan
+      - name: Run Security Scan
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -39,17 +39,20 @@ jobs:
             --fail-on HIGH \
             --sarif \
             --json > scan_results.json
+          
+          mv audit_report_*/*.sarif results.sarif
 
-      - name: Upload SARIF Report
-        if: always() 
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: audit_report_*.sarif
+          sarif_file: results.sarif
           category: ssf-audit
 
-      - name: Upload JSON Artifact
+      - name: Upload Raw JSON Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ssf-report
+          name: ssf-full-report
           path: scan_results.json
+          retention-days: 14
