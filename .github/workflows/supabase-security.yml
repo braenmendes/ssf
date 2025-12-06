@@ -1,0 +1,55 @@
+name: Supabase Security Audit
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * 0' 
+
+jobs:
+  security-audit:
+    name: SSF Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install SSF
+        run: pip3 install supabase-audit-framework --upgrade
+
+      - name: Run Supabase Security Scan
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          ssf $SUPABASE_URL $SUPABASE_KEY \
+            --ci \
+            --ci-format github \
+            --fail-on HIGH \
+            --sarif \
+            --json > scan_results.json
+
+      - name: Upload SARIF Report
+        if: always() 
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: audit_report_*.sarif
+          category: ssf-audit
+
+      - name: Upload JSON Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ssf-report
+          path: scan_results.json
