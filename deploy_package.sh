@@ -122,7 +122,7 @@ echo -e "${GREEN}[+] Files updated.${NC}"
 
 echo -e "${GREEN}[+] Committing and Pushing to GitHub...${NC}"
 git add pyproject.toml ssf/__main__.py ssf/core/banner.py ssf/__init__.py README.md
-git commit -m "Release v$NEW_VERSION: Improved logic and new feature arrivals"
+git commit -m "Release v$NEW_VERSION: Fixed report.py bug for sarif feature"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}[+] Created commit.${NC}"

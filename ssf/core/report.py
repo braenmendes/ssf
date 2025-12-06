@@ -452,103 +452,116 @@ BEGIN;
         sql_content +="\\nCOMMIT;\\n"
         return sql_content 
 
-class SARIFReporter :
-    def generate (self ,report :Dict [str ,Any ])->str :
-        findings =report .get ("findings",{})
-        target =report .get ("target","Unknown")
+class SARIFReporter:
+    def generate(self, report: Dict[str, Any]) -> str:
+        findings = report.get("findings", {})
+        
+        runs = []
+        results = []
 
-        runs =[]
-        results =[]
 
-
-        for r in findings .get ("rls",[]):
-            if r ["risk"]in ["CRITICAL","HIGH","MEDIUM"]:
-                results .append ({
-                "ruleId":"SSF-RLS-001",
-                "level":"error"if r ["risk"]=="CRITICAL"else "warning",
-                "message":{
-                "text":f"RLS Issue on table {r ['table']}: {r ['risk']}"
-                },
-                "locations":[{
-                "physicalLocation":{
-                "artifactLocation":{
-                "uri":f"database/tables/{r ['table']}"
-                }
-                }
-                }]
+        for r in findings.get("rls", []):
+            if r["risk"] in ["CRITICAL", "HIGH", "MEDIUM"]:
+                results.append({
+                    "ruleId": "SSF-RLS-001",
+                    "level": "error" if r["risk"] == "CRITICAL" else "warning",
+                    "message": {
+                        "text": f"RLS Issue on table {r['table']}: {r['risk']}"
+                    },
+                    "locations": [{
+                        "physicalLocation": {
+                            "artifactLocation": {
+                                "uri": f"database/tables/{r['table']}"
+                            },
+                            "region": {
+                                "startLine": 1,
+                                "startColumn": 1
+                            }
+                        }
+                    }]
                 })
 
-
-        auth =findings .get ("auth",{})
-        if auth .get ("leaked"):
-             results .append ({
-             "ruleId":"SSF-AUTH-001",
-             "level":"error",
-             "message":{
-             "text":f"Auth Leak Detected: {auth .get ('count')} users exposed"
-             },
-             "locations":[{
-             "physicalLocation":{
-             "artifactLocation":{
-             "uri":"auth/users"
-             }
-             }
-             }]
+        auth = findings.get("auth", {})
+        if auth.get("leaked"):
+             results.append({
+                 "ruleId": "SSF-AUTH-001",
+                 "level": "error",
+                 "message": {
+                     "text": f"Auth Leak Detected: {auth.get('count')} users exposed"
+                 },
+                 "locations": [{
+                     "physicalLocation": {
+                         "artifactLocation": {
+                             "uri": "auth/users"
+                         },
+                         "region": {
+                            "startLine": 1,
+                             "startColumn": 1
+                         }
+                     }
+                 }]
              })
 
-
-        for r in findings .get ("rpc",[]):
-             if r .get ("risk")in ["CRITICAL","HIGH"]:
-                results .append ({
-                "ruleId":"SSF-RPC-001",
-                "level":"error"if r ["risk"]=="CRITICAL"else "warning",
-                "message":{
-                "text":f"Vulnerable RPC: {r ['name']}"
-                },
-                "locations":[{
-                "physicalLocation":{
-                "artifactLocation":{
-                "uri":f"database/functions/{r ['name']}"
-                }
-                }
-                }]
+        for r in findings.get("rpc", []):
+             if r.get("risk") in ["CRITICAL", "HIGH"]:
+                results.append({
+                    "ruleId": "SSF-RPC-001",
+                    "level": "error" if r["risk"] == "CRITICAL" else "warning",
+                    "message": {
+                        "text": f"Vulnerable RPC: {r['name']}"
+                    },
+                    "locations": [{
+                        "physicalLocation": {
+                            "artifactLocation": {
+                                "uri": f"database/functions/{r['name']}"
+                            },
+                            "region": {
+                                "startLine": 1,
+                                "startColumn": 1
+                            }
+                        }
+                    }]
                 })
 
-        sarif ={
-        "$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
-        "version":"2.1.0",
-        "runs":[{
-        "tool":{
-        "driver":{
-        "name":"Supabase Security Framework (SSF)",
-        "version":"3.0",
-        "rules":[
-        {
-        "id":"SSF-RLS-001",
-        "name":"Row Level Security Misconfiguration",
-        "shortDescription":{
-        "text":"RLS policies allow unauthorized access."
-        }
-        },
-        {
-        "id":"SSF-AUTH-001",
-        "name":"Authentication Leak",
-        "shortDescription":{
-        "text":"User data is exposed to public."
-        }
-        },
-        {
-        "id":"SSF-RPC-001",
-        "name":"Vulnerable RPC",
-        "shortDescription":{
-        "text":"RPC function has security vulnerabilities."
-        }
-        }
-        ]
-        }
-        },
-        "results":results 
-        }]
+        sarif = {
+            "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+            "version": "2.1.0",
+            "runs": [{
+                "tool": {
+                    "driver": {
+                        "name": "Supabase Security Framework (SSF)",
+                        "version": "1.2.2",
+                        "informationUri": "https://github.com/backend-developers/supabase-audit-framework",
+                        "rules": [
+                            {
+                                "id": "SSF-RLS-001",
+                                "name": "Row Level Security Misconfiguration",
+                                "shortDescription": {
+                                    "text": "RLS policies allow unauthorized access."
+                                },
+                                "helpUri": "https://github.com/backend-developers/supabase-audit-framework"
+                            },
+                            {
+                                "id": "SSF-AUTH-001",
+                                "name": "Authentication Leak",
+                                "shortDescription": {
+                                    "text": "User data is exposed to public."
+                                },
+                                "helpUri": "https://github.com/backend-developers/supabase-audit-framework"
+                            },
+                            {
+                                "id": "SSF-RPC-001",
+                                "name": "Vulnerable RPC",
+                                "shortDescription": {
+                                    "text": "RPC function has security vulnerabilities."
+                                },
+                                "helpUri": "https://github.com/backend-developers/supabase-audit-framework"
+                            }
+                        ]
+                    }
+                },
+                "results": results
+            }]
         }
 
-        return json .dumps (sarif ,indent =2 )
+        return json.dumps(sarif, indent=2)
