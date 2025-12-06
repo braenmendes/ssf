@@ -519,7 +519,7 @@ async def main():
             sarif_content = sarif_reporter.generate(full_report)
             sarif_filename = os.path.join(output_dir, f"audit_report_{timestamp}.sarif")
             with open(sarif_filename, "w", encoding="utf-8") as f:
-                json.dump(sarif_content, f, indent=2)
+                f.write(sarif_content)
             console.print(f"[bold green]✔ SARIF Report saved: {sarif_filename}[/]")
         if args.gen_fixes and config.has_ai and "ai_analysis" in full_report:
             fix_gen = FixGenerator()
