@@ -57,6 +57,14 @@ jobs:
           
           exit $EXIT_CODE
 
+      - name: Debug SARIF Output
+        if: always()
+        run: |
+          ls -la
+          echo "=== SARIF CONTENT START ==="
+          cat results.sarif || echo "results.sarif not found"
+          echo "=== SARIF CONTENT END ==="
+
       - name: Upload SARIF to GitHub Security
         if: always()
         uses: github/codeql-action/upload-sarif@v4
