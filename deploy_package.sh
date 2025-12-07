@@ -16,9 +16,25 @@ else
     echo -e "${GREEN}[+] Using system python: $PYTHON_CMD${NC}"
 fi
 
-export TWINE_USERNAME="__token__"
+
+if [ -z "$TWINE_USERNAME" ]; then
+    export TWINE_USERNAME="__token__"
+fi
+
 if [ -z "$TWINE_PASSWORD" ] && [ -n "$PYPI_TOKEN" ]; then
     export TWINE_PASSWORD="${PYPI_TOKEN}"
+fi
+
+if [ -z "$TWINE_PASSWORD" ]; then
+    echo -e "${YELLOW}[!] TWINE_PASSWORD (PyPI Token) not set.${NC}"
+    echo -e "Enter PyPI API Token (starts with pypi-...): "
+    read -s TWINE_PASSWORD
+    export TWINE_PASSWORD
+    echo ""
+    if [ -z "$TWINE_PASSWORD" ]; then
+         echo -e "${RED}❌ No token provided. Aborting.${NC}"
+         exit 1
+    fi
 fi
 
 
@@ -117,12 +133,17 @@ sed -i "s/subtitle =\"v[0-9]*\.[0-9]*\.[0-9]*\"/subtitle =\"v$NEW_VERSION\"/g" s
 sed -i "s/__version__ = \"[0-9]*\.[0-9]*\.[0-9]*\"/__version__ = \"$NEW_VERSION\"/g" ssf/__init__.py
 sed -i "s/# Supabase Security Framework (ssf) v[0-9]*\.[0-9]*\.[0-9]*/# Supabase Security Framework (ssf) v$NEW_VERSION/g" README.md
 
+sed -i "s/<title>SSF v[0-9]*\.[0-9]*\.[0-9]* - WebUI<\/title>/<title>SSF v$NEW_VERSION - WebUI<\/title>/g" ssf/app/static/index.html
+sed -i "s/<span class=\"version\">v[0-9]*\.[0-9]*\.[0-9]*<\/span>/<span class=\"version\">v$NEW_VERSION<\/span>/g" ssf/app/static/index.html
+sed -i "s/SSF Core v[0-9]*\.[0-9]*\.[0-9]*/SSF Core v$NEW_VERSION/g" ssf/app/static/index.html
+sed -i "s/SSF v[0-9]*\.[0-9]*\.[0-9]* Web/SSF v$NEW_VERSION Web/g" ssf/app/static/index.html
+
 echo -e "${GREEN}[+] Files updated.${NC}"
 
 
 echo -e "${GREEN}[+] Committing and Pushing to GitHub...${NC}"
-git add pyproject.toml ssf/__main__.py ssf/core/banner.py ssf/__init__.py README.md
-git commit -m "Release v$NEW_VERSION: New features for collaboration"
+git add pyproject.toml ssf/__main__.py ssf/core/banner.py ssf/__init__.py README.md ssf/app/static/index.html
+git commit -m "Release v$NEW_VERSION: New features for collaboration & Update README.md"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}[+] Created commit.${NC}"

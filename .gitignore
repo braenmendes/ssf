@@ -30,5 +30,5 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
-deploy_package.sh
+
 reports/
