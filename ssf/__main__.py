@@ -73,6 +73,9 @@ async def main():
     parser.add_argument("--check-config", action="store_true", help="Check PostgREST configuration (max_rows)")
     parser.add_argument("--webui", action="store_true", help="Launch Web Management Dashboard")
     parser.add_argument("--port", type=int, default=8080, help="Port for Web UI (default: 8080)")
+    parser.add_argument("--ngrok", action="store_true", help="Expose Web UI via ngrok")
+    parser.add_argument("--auth", help="Username:Password for Web UI (e.g., admin:secret)")
+
     parser.add_argument("--stealth", action="store_true", help="Enable Stealth Mode (JA3 Spoofing)")
     parser.add_argument("--sarif", action="store_true", help="Generate SARIF report")
 
@@ -84,7 +87,7 @@ async def main():
     args = parser.parse_args()
     if args.webui:
         from ssf.app.server import run_server
-        await run_server(port=args.port)
+        await run_server(port=args.port, use_ngrok=args.ngrok, auth_credentials=args.auth)
         return
     if args.compile:
         return

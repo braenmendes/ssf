@@ -14,18 +14,27 @@ class CIHandler :
         if findings .get ("auth",{}).get ("leaked"):
             failure_reasons .append ("Auth Leak Detected")
             self ._print_error ("Auth Leak Detected: Public access to users table!","CRITICAL")
-        rls_issues =findings .get ("rls",[])
-        for r in rls_issues :
-            risk =r .get ("risk","SAFE")
-            if self .risk_levels .get (risk ,0 )>=self .threshold :
-                failure_reasons .append (f"RLS Issue: {r ['table']} ({risk })")
-                self ._print_error (f"RLS Risk in {r ['table']}: {risk }",risk )
-        rpc_issues =findings .get ("rpc",[])
-        for r in rpc_issues :
-            risk =r .get ("risk","SAFE")
-            if self .risk_levels .get (risk ,0 )>=self .threshold :
-                failure_reasons .append (f"RPC Issue: {r ['name']} ({risk })")
-                self ._print_error (f"RPC Risk in {r ['name']}: {risk }",risk )
+        rls_issues = findings.get("rls", [])
+        for r in rls_issues:
+            risk = r.get("risk", "SAFE")
+            
+
+            self._print_error(f"RLS Risk in {r['table']}: {risk}", risk)
+            
+  
+            if self.risk_levels.get(risk, 0) >= self.threshold:
+                failure_reasons.append(f"RLS Issue: {r['table']} ({risk})")
+                
+        rpc_issues = findings.get("rpc", [])
+        for r in rpc_issues:
+            risk = r.get("risk", "SAFE")
+            
+      
+            self._print_error(f"RPC Risk in {r['name']}: {risk}", risk)
+            
+           
+            if self.risk_levels.get(risk, 0) >= self.threshold:
+                failure_reasons.append(f"RPC Issue: {r['name']} ({risk})")
         if diff :
             new_rls =diff .get ("rls",{}).get ("new",[])
             if new_rls :
@@ -40,8 +49,14 @@ class CIHandler :
             if self .format =="text":
                 console .print ("\n[bold green]✔ CI Passed: No issues found meeting failure criteria.[/]")
             sys .exit (0 )
-    def _print_error (self ,message :str ,level :str ):
-        if self .format =="github":
-            print (f"::error title=SSF {level }::{message }")
-        else :
-            console .print (f"[red][!] {message }[/]")
+    def _print_error(self, message: str, level: str):
+        level = level.upper()
+        if self.format == "github":
+            command = "warning" 
+            
+            if level in ["INFO", "SAFE", "ACCEPTED", "UNKNOWN"]:
+                command = "notice"
+        
+            print(f"::{command} title=SSF {level}::{message}")
+        else:
+            console.print(f"[red][!] {message}[/]")

@@ -1,0 +1,48 @@
+name: Check for Comments
+
+on: [push, pull_request]
+
+jobs:
+  check-comments:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check Python Comments
+        run: |
+          echo "Checking for Python comments..."
+          # Grep for lines starting with #, ignoring whitespace
+          # Exclude functional lines if possible, or just report availability
+          grep -r "^[[:blank:]]*#" --include="*.py" . || echo "No python comments found (or grep failed)"
+        continue-on-error: true
+
+      - name: Check JavaScript Comments
+        run: |
+          echo "Checking for JavaScript comments..."
+          grep -rE "(\/\/|\/\*)" --include="*.js" . || echo "No JS comments found"
+        continue-on-error: true
+
+      - name: Check HTML Comments
+        run: |
+          echo "Checking for HTML comments..."
+          grep -r "<!--" --include="*.html" . || echo "No HTML comments found"
+        continue-on-error: true
+
+      - name: Check CSS Comments
+        run: |
+          echo "Checking for CSS comments..."
+          grep -r "/\*" --include="*.css" . || echo "No CSS comments found"
+        continue-on-error: true
+
+      - name: Check Shell Comments
+        run: |
+          echo "Checking for Shell comments..."
+          # Exclude shebang
+          grep -r "^[[:blank:]]*#" --include="*.sh" . | grep -v "#!" || echo "No Shell comments found"
+        continue-on-error: true
+
+      - name: Check Dockerfile Comments
+        run: |
+          echo "Checking for Dockerfile comments..."
+          grep -r "^[[:blank:]]*#" --include="Dockerfile" . || echo "No Dockerfile comments found"
+        continue-on-error: true

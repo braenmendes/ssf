@@ -13,6 +13,12 @@ from ssf.core .config import TargetConfig
 from ssf.core .scanner_manager import ScannerManager 
 from ssf.core .knowledge import KnowledgeBase 
 from ssf.core .exploit import run_exploit 
+import secrets
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
+import base64
 
 app =FastAPI (title ="Supabase Security Framework API",version ="3.0")
 
@@ -35,7 +41,55 @@ class AppState :
         self .logs =[]
         self .stop_requested =False 
 
+        self .stop_requested =False 
+        self .auth_credentials = None
+
 state =AppState ()
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if not state.auth_credentials:
+            return await call_next(request)
+
+        if request.url.path == "/favicon.ico":
+             return await call_next(request)
+
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Basic "):
+            return Response(
+                status_code=401,
+                headers={"WWW-Authenticate": "Basic"},
+                content="Unauthorized"
+            )
+
+        try:
+            encoded_creds = auth_header.split(" ")[1]
+            decoded_bytes = base64.b64decode(encoded_creds)
+            decoded_str = decoded_bytes.decode("utf-8")
+            username, password = decoded_str.split(":", 1)
+            
+            expected_user, expected_pass = state.auth_credentials
+            
+            is_user_correct = secrets.compare_digest(username, expected_user)
+            is_pass_correct = secrets.compare_digest(password, expected_pass)
+            
+            if not (is_user_correct and is_pass_correct):
+                return Response(
+                    status_code=401,
+                    headers={"WWW-Authenticate": "Basic"},
+                    content="Invalid credentials"
+                )
+        except Exception:
+             return Response(
+                status_code=401,
+                headers={"WWW-Authenticate": "Basic"},
+                content="Invalid authentication header"
+            )
+            
+        return await call_next(request)
+
+app.add_middleware(AuthMiddleware)
+
 
 class ScanConfig (BaseModel ):
     url :str 
@@ -488,7 +542,50 @@ DEFAULT_KNOWLEDGE_PATH = os.path.join(PACKAGE_ROOT, "knowledge.json")
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
-def run_server(port=8080, open_browser=True):
+
+def run_server(port=8080, open_browser=True, use_ngrok=False, auth_credentials=None):
+    
+
+    if use_ngrok and not auth_credentials:
+    
+        gen_user = "admin"
+        gen_pass = secrets.token_urlsafe(16)
+        state.auth_credentials = (gen_user, gen_pass)
+        print(f"\n[!] Ngrok Enabled but no auth provided. Generated secure credentials:")
+        print(f"    Username: {gen_user}")
+        print(f"    Password: {gen_pass}\n")
+    elif auth_credentials:
+        if ":" in auth_credentials:
+            user, pwd = auth_credentials.split(":", 1)
+            state.auth_credentials = (user, pwd)
+            print(f"[*] Web UI Authentication Enabled (User: {user})")
+        else:
+            print("[!] Invalid auth format. Use username:password. Starting without auth.")
+
+    if use_ngrok:
+        try:
+            from pyngrok import ngrok, conf
+            
+           
+            ngrok_token = os.getenv("NGROK_AUTHTOKEN")
+            if ngrok_token:
+                conf.get_default().auth_token = ngrok_token
+                
+            public_url = ngrok.connect(port).public_url
+            print(f"\n[+] Ngrok Tunnel Established: {public_url}")
+            if state.auth_credentials:
+               
+                 print(f"[+] Login required at: {public_url}\n")
+                 
+            if open_browser:
+                webbrowser.open(public_url)
+                open_browser = False 
+                
+        except ImportError:
+            print("[!] pyngrok not installed. Install with: pip install pyngrok")
+        except Exception as e:
+            print(f"[!] Ngrok Error: {e}")
+
     if open_browser:
         webbrowser.open(f"http://localhost:{int(port)}")
 

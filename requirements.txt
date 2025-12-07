@@ -9,8 +9,4 @@ uvicorn
 python-multipart
 curl_cffi
 PyJWT
-
-
-
-
-
+pyngrok
