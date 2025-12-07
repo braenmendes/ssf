@@ -1,4 +1,4 @@
-# Supabase Security Framework (ssf) v1.2.9
+# Supabase Security Framework (ssf) v1.2.10
 
 ![Banner](https://img.shields.io/badge/Supabase-Security-green) ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![License](https://img.shields.io/badge/License-MIT-yellow) ![Status](https://img.shields.io/badge/Maintained-Yes-brightgreen)
 
@@ -424,6 +424,9 @@ Once you save this file in the `plugins/` folder, **ssf** will:
 | `--tamper <NAME>` | Tamper script name (built-in) or path to file |
 | `--webui` | Launch the Web Management Dashboard |
 | `--port <PORT>` | Port for Web UI (default: 8080) |
+| `--ngrok` | Expose Web UI via ngrok |
+| `--auth <CREDENTIALS>` | Username:Password for Web UI (e.g., admin:secret) |
+| `--plugins <LIST>` | Select plugins to run (comma-separated names or 'all') |
 
 ## ⚠️ Disclaimer
 
