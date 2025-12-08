@@ -1,6 +1,10 @@
 #!/bin/bash
 
 
+if [ -d ".venv" ]; then
+    source .venv/bin/activate
+fi
+
 if [ -f .env ]; then
   echo "Loading .env file..."
   export $(grep -v '^#' .env | xargs)
