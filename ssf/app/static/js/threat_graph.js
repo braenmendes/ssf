@@ -3,7 +3,7 @@ let cyInstance = null;
 function loadThreatModel() {
     const container = document.getElementById('threat-graph-container');
 
-    
+
     if (cyInstance) {
         console.log('Destroying previous Cytoscape instance');
         try {
@@ -54,7 +54,7 @@ function loadThreatModel() {
         tm.attack_paths.forEach((path, i) => {
 
             const attackId = `attack_${i}`;
-   
+
             let label = path.name;
             if (label.length > 20) label = label.substring(0, 20) + '...';
 
@@ -62,7 +62,7 @@ function loadThreatModel() {
                 data: {
                     id: attackId,
                     label: label,
-                    fullLabel: path.name, 
+                    fullLabel: path.name,
                     type: 'attack',
                     impact: path.impact,
                     likelihood: path.likelihood
@@ -96,7 +96,7 @@ function loadThreatModel() {
 
     if (container.offsetWidth === 0 || container.offsetHeight === 0) {
         console.warn('Container has no size! Graph will not be visible.');
-        container.style.height = '600px'; 
+        container.style.height = '600px';
         container.style.width = '100%';
         console.log('Forced container dimensions');
     }
@@ -113,7 +113,7 @@ function loadThreatModel() {
             container: container,
             elements: elements,
             style: [
-   
+
                 {
                     selector: 'node',
                     style: {
@@ -137,7 +137,7 @@ function loadThreatModel() {
                         'overlay-opacity': 0
                     }
                 },
-           
+
                 {
                     selector: 'node[type="actor"]',
                     style: {
@@ -148,7 +148,7 @@ function loadThreatModel() {
                         'height': 50
                     }
                 },
-         
+
                 {
                     selector: 'node[type="asset"]',
                     style: {
@@ -159,7 +159,7 @@ function loadThreatModel() {
                         'height': 60
                     }
                 },
-               
+
                 {
                     selector: 'node[type="attack"]',
                     style: {
@@ -170,7 +170,7 @@ function loadThreatModel() {
                         'height': 40
                     }
                 },
-              
+
                 {
                     selector: 'edge',
                     style: {
@@ -221,6 +221,16 @@ function loadThreatModel() {
 
     } catch (e) {
         console.error('Error initializing Cytoscape:', e);
-        container.innerHTML = `<p class="error">Error initializing graph: ${e.message}</p>`;
+        container.innerHTML = `<p class="error">Error initializing graph: ${escapeHtml(e.message)}</p>`;
     }
+}
+
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }

@@ -30,6 +30,16 @@ const aiModels = {
     ]
 };
 
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function updateModelOptions() {
     const provider = document.getElementById('ai-provider').value;
     const modelSelect = document.getElementById('ai-model');
@@ -252,7 +262,16 @@ function addLog(message, type = 'info') {
     const entry = document.createElement('div');
     entry.className = 'log-entry';
     const time = new Date().toLocaleTimeString();
-    entry.innerHTML = `<span class="timestamp">[${time}]</span> <span class="${type}">${message}</span>`;
+    const timestampSpan = document.createElement('span');
+    timestampSpan.className = 'timestamp';
+    timestampSpan.textContent = `[${time}]`;
+
+    const messageSpan = document.createElement('span');
+    messageSpan.className = type;
+    messageSpan.textContent = " " + message;
+
+    entry.appendChild(timestampSpan);
+    entry.appendChild(messageSpan);
 
     logWindow.appendChild(entry);
     logWindow.scrollTop = logWindow.scrollHeight;
@@ -330,7 +349,16 @@ async function updateStatus() {
                 else if (log.level === 'success') levelClass = 'success';
                 else if (log.level === 'warning') levelClass = 'warning';
 
-                entry.innerHTML = `<span class="timestamp">[${log.timestamp}]</span> <span class="${levelClass}">${log.message}</span>`;
+                const timestampSpan = document.createElement('span');
+                timestampSpan.className = 'timestamp';
+                timestampSpan.textContent = `[${log.timestamp}]`;
+
+                const messageSpan = document.createElement('span');
+                messageSpan.className = levelClass;
+                messageSpan.textContent = " " + log.message;
+
+                entry.appendChild(timestampSpan);
+                entry.appendChild(messageSpan);
                 logWindow.appendChild(entry);
             });
 
@@ -440,7 +468,7 @@ function renderReport(report, filter = 'all') {
         const section = createSection('Authentication', f.auth.leaked ? 'LEAK' : 'SECURE');
         const status = f.auth.leaked ? 'CRITICAL' : 'SAFE';
         section.appendChild(createFindingCard('Users Table', status, `
-            Exposed Users: ${f.auth.count}
+            Exposed Users: ${escapeHtml(f.auth.count)}
         `));
         container.appendChild(section);
     }
@@ -448,8 +476,8 @@ function renderReport(report, filter = 'all') {
     if ((filter === 'all' || filter === 'storage') && f.storage) {
         const section = createSection('Storage Buckets', f.storage.length);
         f.storage.forEach(b => {
-            section.appendChild(createFindingCard(b.name, b.public ? 'HIGH' : 'SAFE', `
-                Public: ${b.public}
+            section.appendChild(createFindingCard(escapeHtml(b.name), b.public ? 'HIGH' : 'SAFE', `
+                Public: ${escapeHtml(b.public)}
             `));
         });
         container.appendChild(section);
@@ -458,8 +486,8 @@ function renderReport(report, filter = 'all') {
     if ((filter === 'all' || filter === 'rpc') && f.rpc) {
         const section = createSection('RPC Functions', f.rpc.length);
         f.rpc.forEach(r => {
-            section.appendChild(createFindingCard(r.name, r.risk || 'SAFE', `
-                Args: ${r.args} | Return: ${r.return_type}
+            section.appendChild(createFindingCard(escapeHtml(r.name), r.risk || 'SAFE', `
+                Args: ${escapeHtml(r.args)} | Return: ${escapeHtml(r.return_type)}
             `));
         });
         container.appendChild(section);
@@ -468,8 +496,8 @@ function renderReport(report, filter = 'all') {
     if ((filter === 'all' || filter === 'functions') && f.functions) {
         const section = createSection('Edge Functions', f.functions.length);
         f.functions.forEach(func => {
-            section.appendChild(createFindingCard(func.name, 'INFO', `
-                Status: ${func.status}
+            section.appendChild(createFindingCard(escapeHtml(func.name), 'INFO', `
+                Status: ${escapeHtml(func.status)}
             `));
         });
         container.appendChild(section);
@@ -478,7 +506,7 @@ function renderReport(report, filter = 'all') {
     if ((filter === 'all' || filter === 'realtime') && f.realtime) {
         const section = createSection('Realtime Channels', f.realtime.channels.length);
         f.realtime.channels.forEach(c => {
-            section.appendChild(createFindingCard(c, 'INFO', 'Open Channel'));
+            section.appendChild(createFindingCard(escapeHtml(c), 'INFO', 'Open Channel'));
         });
         container.appendChild(section);
     }
@@ -486,10 +514,10 @@ function renderReport(report, filter = 'all') {
     if ((filter === 'all' || filter === 'postgres') && f.postgres) {
         const section = createSection('Postgres Config', f.postgres.exposed_system_tables.length);
         f.postgres.exposed_system_tables.forEach(t => {
-            section.appendChild(createFindingCard(t, 'CRITICAL', 'Exposed System Table'));
+            section.appendChild(createFindingCard(escapeHtml(t), 'CRITICAL', 'Exposed System Table'));
         });
         f.postgres.config_issues.forEach(i => {
-            section.appendChild(createFindingCard('Config Issue', 'MEDIUM', i));
+            section.appendChild(createFindingCard('Config Issue', 'MEDIUM', escapeHtml(i)));
         });
         container.appendChild(section);
     }
@@ -498,7 +526,7 @@ function renderReport(report, filter = 'all') {
 function createSection(title, count) {
     const div = document.createElement('div');
     div.className = 'report-section';
-    div.innerHTML = `<h3 style="margin: 1rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">${title} <span style="font-size:0.8em; color:var(--text-secondary)">(${count})</span></h3>`;
+    div.innerHTML = `<h3 style="margin: 1rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">${escapeHtml(title)} <span style="font-size:0.8em; color:var(--text-secondary)">(${count})</span></h3>`;
     return div;
 }
 
@@ -507,14 +535,14 @@ function createFindingCard(title, risk, details) {
     el.className = 'finding-item';
     el.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
-            <strong>${title}</strong>
-            <span class="risk-badge risk-${risk}">${risk}</span>
+            <strong>${escapeHtml(title)}</strong>
+            <span class="risk-badge risk-${escapeHtml(risk)}">${escapeHtml(risk)}</span>
         </div>
         <p style="color:var(--text-secondary); font-size:0.9rem">
             ${details}
         </p>
         <div style="text-align:right; margin-top:0.5rem">
-             <button class="btn-secondary" style="font-size:0.8rem; padding:0.2rem 0.5rem" onclick="acceptRisk('${risk}:${title}')">Accept Risk</button>
+             <button class="btn-secondary" style="font-size:0.8rem; padding:0.2rem 0.5rem" onclick="acceptRisk('${escapeHtml(risk)}:${escapeHtml(title).replace(/'/g, "\\'")}')">Accept Risk</button>
         </div>
     `;
     return el;
@@ -576,12 +604,12 @@ async function loadHistory() {
             el.className = 'finding-item';
             el.style.cursor = 'pointer';
             el.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; width:100%" onclick="loadReport('${scan.id}')">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%" onclick="loadReport('${escapeHtml(scan.id)}')">
                     <div>
-                        <strong>Scan ${scan.id}</strong>
-                        <div style="font-size:0.8em; opacity:0.7">${date}</div>
+                        <strong>Scan ${escapeHtml(scan.id)}</strong>
+                        <div style="font-size:0.8em; opacity:0.7">${escapeHtml(date)}</div>
                     </div>
-                    <button class="btn-icon delete-btn" onclick="deleteScan('${scan.id}', event)" title="Delete Scan" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.2em; padding:0.5rem;">🗑️</button>
+                    <button class="btn-icon delete-btn" onclick="deleteScan('${escapeHtml(scan.id)}', event)" title="Delete Scan" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.2em; padding:0.5rem;">🗑️</button>
                 </div>
             `;
             container.appendChild(el);
@@ -701,14 +729,14 @@ async function loadExploits() {
                 <div class="exploit-header">
                     <div class="exploit-icon">${icon}</div>
                     <div class="exploit-title">
-                        <h3>${exp.type.replace(/_/g, ' ').toUpperCase()}</h3>
-                        <span class="exploit-target">${target}</span>
+                        <h3>${escapeHtml(exp.type.replace(/_/g, ' ').toUpperCase())}</h3>
+                        <span class="exploit-target">${escapeHtml(target)}</span>
                     </div>
                 </div>
                 <div class="exploit-body">
-                    <p>${exp.description || 'Automated Proof of Concept exploit generated by AI analysis.'}</p>
-                    <div class="exploit-meta clickable" onclick='openEditPayloadModal("${target}", ${payloadStr}, "${exp.type}")' title="Click to edit payload">
-                        <span class="meta-item"><strong>Payload:</strong> ${JSON.stringify(payload)} <span style="margin-left:8px; opacity:0.8;">✏️</span></span>
+                    <p>${escapeHtml(exp.description || 'Automated Proof of Concept exploit generated by AI analysis.')}</p>
+                    <div class="exploit-meta clickable" onclick='openEditPayloadModal("${escapeHtml(target)}", ${payloadStr}, "${escapeHtml(exp.type)}")' title="Click to edit payload">
+                        <span class="meta-item"><strong>Payload:</strong> ${escapeHtml(JSON.stringify(payload))} <span style="margin-left:8px; opacity:0.8;">✏️</span></span>
                     </div>
                 </div>
                 <div class="exploit-actions">
@@ -749,7 +777,11 @@ async function runExploit() {
 
         if (!res.ok) {
             const err = await res.json();
-            statusBox.innerHTML = `<p class="error">Failed to start: ${err.detail}</p>`;
+            statusBox.innerHTML = '';
+            const p = document.createElement('p');
+            p.className = 'error';
+            p.textContent = `Failed to start: ${err.detail}`;
+            statusBox.appendChild(p);
             return;
         }
 
@@ -785,7 +817,11 @@ async function runExploit() {
         }, 2000);
 
     } catch (e) {
-        statusBox.innerHTML = `<p class="error">Error: ${e.message}</p>`;
+        statusBox.innerHTML = '';
+        const p = document.createElement('p');
+        p.className = 'error';
+        p.textContent = `Error: ${e.message}`;
+        statusBox.appendChild(p);
     }
 }
 
@@ -805,10 +841,10 @@ function renderExploitResults(results) {
     results.forEach(res => {
         const statusClass = res.status === 'SUCCESS' ? 'badge critical' : 'badge safe';
         html += `<tr>
-            <td>${res.type}</td>
-            <td>${res.target}</td>
-            <td><span class="${statusClass}">${res.status}</span></td>
-            <td>${res.details}</td>
+            <td>${escapeHtml(res.type)}</td>
+            <td>${escapeHtml(res.target)}</td>
+            <td><span class="${statusClass}">${escapeHtml(res.status)}</span></td>
+            <td>${escapeHtml(res.details)}</td>
         </tr>`;
     });
 
@@ -834,11 +870,11 @@ async function loadRisks() {
                 el.className = 'finding-item';
                 el.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center">
-                        <strong>${type.toUpperCase()}: ${id}</strong>
+                        <strong>${escapeHtml(type).toUpperCase()}: ${escapeHtml(id)}</strong>
                         <span class="risk-badge risk-ACCEPTED">ACCEPTED</span>
                     </div>
-                    <p>Reason: ${data.reason}</p>
-                    <p style="font-size:0.8rem; color:var(--text-secondary)">By: ${data.user} at ${data.timestamp}</p>
+                    <p>Reason: ${escapeHtml(data.reason)}</p>
+                    <p style="font-size:0.8rem; color:var(--text-secondary)">By: ${escapeHtml(data.user)} at ${escapeHtml(data.timestamp)}</p>
                 `;
                 container.appendChild(el);
             }
@@ -949,13 +985,13 @@ function updateDashboard(report) {
         }
 
         if (report.findings.rls && report.findings.rls.length > 0) {
-            const tables = report.findings.rls.map(t => t.table).slice(0, 3).join(', ');
+            const tables = report.findings.rls.map(t => escapeHtml(t.table)).slice(0, 3).join(', ');
             const more = report.findings.rls.length > 3 ? `and ${report.findings.rls.length - 3} more` : '';
             summary += `<li><span class="badge high">HIGH</span> <strong>RLS Misconfiguration:</strong> Row Level Security is disabled or permissive on ${report.findings.rls.length} tables (e.g., <em>${tables} ${more}</em>).</li>`;
         }
 
         if (report.findings.storage && report.findings.storage.some(b => b.public)) {
-            const buckets = report.findings.storage.filter(b => b.public).map(b => b.name).join(', ');
+            const buckets = report.findings.storage.filter(b => b.public).map(b => escapeHtml(b.name)).join(', ');
             summary += `<li><span class="badge medium">MEDIUM</span> <strong>Public Storage Buckets:</strong> The following buckets allow public access: <em>${buckets}</em>. Ensure this is intended for static assets.</li>`;
         }
 
@@ -1077,7 +1113,7 @@ async function loadDownloads() {
             section.className = 'download-section';
             section.innerHTML = `
                 <h3 style="margin-bottom:0.5rem; border-bottom:1px solid var(--border); padding-bottom:0.5rem;">
-                    Scan ${scan.scan_id} <span style="font-size:0.8em; color:var(--text-secondary)">(${date})</span>
+                    Scan ${escapeHtml(scan.scan_id)} <span style="font-size:0.8em; color:var(--text-secondary)">(${escapeHtml(date)})</span>
                 </h3>
             `;
 
@@ -1090,10 +1126,10 @@ async function loadDownloads() {
                 const size = (file.size / 1024).toFixed(2) + ' KB';
                 item.innerHTML = `
                     <div class="file-info">
-                        <span class="file-name">📄 ${file.name}</span>
-                        <span class="file-size">${size}</span>
+                        <span class="file-name">📄 ${escapeHtml(file.name)}</span>
+                        <span class="file-size">${escapeHtml(size)}</span>
                     </div>
-                    <a href="/api/download/${scan.scan_id}/${file.name}" class="btn-primary" download>Download</a>
+                    <a href="/api/download/${escapeHtml(scan.scan_id)}/${escapeHtml(file.name)}" class="btn-primary" download>Download</a>
                 `;
                 list.appendChild(item);
             });

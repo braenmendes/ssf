@@ -39,7 +39,7 @@ class SmartClient :
             base_url =self .config .url ,
             headers =self .headers ,
             timeout =self .config .timeout ,
-            verify =False ,
+            verify =True ,
             proxy =proxy ,
             impersonate ="chrome110"
             )
@@ -49,7 +49,7 @@ class SmartClient :
             base_url =self .config .url ,
             headers =self .headers ,
             timeout =self .config .timeout ,
-            verify =False ,
+            verify =True ,
             proxy =proxy 
             )
 

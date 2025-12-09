@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "supabase-audit-framework"
-version = "1.2.14"
+version = "1.2.15"
 description = "Supabase Audit Framework"
 readme = "README.md"
 authors = [
@@ -24,12 +24,15 @@ dependencies = [
     "google-generativeai",
     "python-dotenv",
     "websockets",
-    "fastapi",
+    "fastapi==0.124.0",
     "uvicorn",
-    "python-multipart",
-    "curl_cffi",
+    "python-multipart==0.0.18",
+    "curl_cffi==0.7.0b6",
     "PyJWT",
-]
+    "starlette==0.49.1",
+    "h11==0.16.0",
+    "zipp==3.19.1",
+    "anyio==4.4.0",
 
 [project.scripts]
 ssf = "ssf.__main__:main_sync"
