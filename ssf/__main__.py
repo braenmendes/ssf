@@ -39,12 +39,8 @@ async def main():
         compiler = Compiler()
         compiler.compile()
         return
-    if "--wizard" in sys.argv:
-        from ssf.core.wizard import run_wizard
-        run_wizard()
-        return
 
-    parser = argparse.ArgumentParser(description="Supabase Audit Framework v1.2.15")
+    parser = argparse.ArgumentParser(description="Supabase Audit Framework v1.2.16")
     parser.add_argument("url", nargs="?", help="Target URL")
     parser.add_argument("key", nargs="?", help="Anon Key")
     parser.add_argument("--agent-provider", help="AI Provider (gemini, openai, anthropic, deepseek, ollama)", default="gemini", choices=["gemini", "openai", "anthropic", "deepseek", "ollama"])
@@ -85,6 +81,14 @@ async def main():
     parser.add_argument("--tamper", help="Tamper script name (built-in) or path to file")
     parser.add_argument("--plugins", help="Select plugins to run (comma-separated names or 'all')")
     args = parser.parse_args()
+    if args.wizard:
+        from ssf.core.wizard import run_wizard
+        wizard_args = run_wizard()
+        if wizard_args:
+            for k, v in wizard_args.items():
+                if v is not None:
+                    setattr(args, k, v)
+
     if args.webui:
         from ssf.app.server import run_server
         await run_server(port=args.port, use_ngrok=args.ngrok, auth_credentials=args.auth)
@@ -208,7 +212,7 @@ async def main():
             console.print(f"[green][*] Knowledge Base loaded from {args.knowledge}[/]")
         else:
             console.print(f"[red][!] Failed to load Knowledge Base from {args.knowledge}[/]")
-    console.print(Panel.fit("[bold white]Supabase Audit Framework v1.2.15[/]\n[cyan]RLS • Auth • Storage • RPC • Realtime • AI[/]", border_style="blue"))
+    console.print(Panel.fit("[bold white]Supabase Audit Framework v1.2.16[/]\n[cyan]RLS • Auth • Storage • RPC • Realtime • AI[/]", border_style="blue"))
     shared_context = {}
     async with SessionManager(config) as client:
         with Progress(SpinnerColumn(), TextColumn("[cyan]Discovery Phase..."), console=console) as p:
