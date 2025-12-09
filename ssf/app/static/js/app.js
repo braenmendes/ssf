@@ -396,12 +396,31 @@ function handleConnectionError() {
             localStorage.removeItem('ssf_report');
             currentReport = null;
             updateDashboard({});
-            document.getElementById('report-content').innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">🔌</div>
-                    <p>Server disconnected. Data cleared.</p>
-                </div>`;
-            document.getElementById('history-list').innerHTML = '<div class="empty-state">Server disconnected.</div>';
+
+            const reportContent = document.getElementById('report-content');
+            reportContent.innerHTML = ''; 
+
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+
+            const emptyIcon = document.createElement('div');
+            emptyIcon.className = 'empty-icon';
+            emptyIcon.textContent = '🔌';
+
+            const msgP = document.createElement('p');
+            msgP.textContent = 'Server disconnected. Data cleared.';
+
+            emptyState.appendChild(emptyIcon);
+            emptyState.appendChild(msgP);
+            reportContent.appendChild(emptyState);
+
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            const historyMsg = document.createElement('div');
+            historyMsg.className = 'empty-state';
+            historyMsg.textContent = 'Server disconnected.';
+            historyList.appendChild(historyMsg);
+
             document.querySelector('.status-text').textContent = "Disconnected";
             document.querySelector('.status-dot').classList.remove('active');
             document.querySelector('.status-dot').style.background = 'var(--danger)';
@@ -526,7 +545,23 @@ function renderReport(report, filter = 'all') {
 function createSection(title, count) {
     const div = document.createElement('div');
     div.className = 'report-section';
-    div.innerHTML = `<h3 style="margin: 1rem 0; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">${escapeHtml(title)} <span style="font-size:0.8em; color:var(--text-secondary)">(${count})</span></h3>`;
+
+    const h3 = document.createElement('h3');
+    h3.style.margin = '1rem 0';
+    h3.style.borderBottom = '1px solid var(--border)';
+    h3.style.paddingBottom = '0.5rem';
+
+    const titleText = document.createTextNode(title + ' ');
+    h3.appendChild(titleText);
+
+    const countSpan = document.createElement('span');
+    countSpan.style.fontSize = '0.8em';
+    countSpan.style.color = 'var(--text-secondary)';
+    countSpan.textContent = `(${count})`;
+
+    h3.appendChild(countSpan);
+    div.appendChild(h3);
+
     return div;
 }
 
@@ -539,10 +574,10 @@ function createFindingCard(title, risk, details) {
     header.style.cssText = "display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem";
 
     const strong = document.createElement('strong');
-    strong.textContent = escapeHtml(title); 
+    strong.textContent = escapeHtml(title);
 
     const badge = document.createElement('span');
-    badge.className = `risk-badge risk-${escapeHtml(risk)}`; 
+    badge.className = `risk-badge risk-${escapeHtml(risk)}`;
     badge.textContent = escapeHtml(risk);
 
     header.appendChild(strong);
@@ -625,15 +660,38 @@ async function loadHistory() {
             const el = document.createElement('div');
             el.className = 'finding-item';
             el.style.cursor = 'pointer';
-            el.innerHTML = `
-        < div style = "display:flex; justify-content:space-between; align-items:center; width:100%" onclick = "loadReport('${escapeHtml(scan.id)}')" >
-                    <div>
-                        <strong>Scan ${escapeHtml(scan.id)}</strong>
-                        <div style="font-size:0.8em; opacity:0.7">${escapeHtml(date)}</div>
-                    </div>
-                    <button class="btn-icon delete-btn" onclick="deleteScan('${escapeHtml(scan.id)}', event)" title="Delete Scan" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.2em; padding:0.5rem;">🗑️</button>
-                </div >
-        `;
+
+        
+            const infoDiv = document.createElement('div');
+
+            const titleStrong = document.createElement('strong');
+            titleStrong.textContent = `Scan ${scan.id}`;
+
+            const dateDiv = document.createElement('div');
+            dateDiv.style.fontSize = '0.8em';
+            dateDiv.style.opacity = '0.7';
+            dateDiv.textContent = date;
+
+            infoDiv.appendChild(titleStrong);
+            infoDiv.appendChild(dateDiv);
+
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn-icon delete-btn';
+            deleteBtn.title = 'Delete Scan';
+            deleteBtn.style.cssText = 'background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.2em; padding:0.5rem;';
+            deleteBtn.textContent = '🗑️';
+            deleteBtn.onclick = (e) => deleteScan(scan.id, e);
+
+
+            const containerDiv = document.createElement('div');
+            containerDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center; width:100%";
+            containerDiv.onclick = () => loadReport(scan.id);
+
+            containerDiv.appendChild(infoDiv);
+            containerDiv.appendChild(deleteBtn);
+
+            el.appendChild(containerDiv);
             container.appendChild(el);
         });
     } catch (e) {
@@ -747,31 +805,91 @@ async function loadExploits() {
             const payload = exp.filter || exp.payload || {};
             const payloadStr = JSON.stringify(payload);
 
-            el.innerHTML = `
-        < div class="exploit-header" >
-                    <div class="exploit-icon">${icon}</div>
-                    <div class="exploit-title">
-                        <h3>${escapeHtml(exp.type.replace(/_/g, ' ').toUpperCase())}</h3>
-                        <span class="exploit-target">${escapeHtml(target)}</span>
-                    </div>
-                </div >
-                <div class="exploit-body">
-                    <p>${escapeHtml(exp.description || 'Automated Proof of Concept exploit generated by AI analysis.')}</p>
-                    <div class="exploit-meta clickable" onclick='openEditPayloadModal("${escapeHtml(target)}", ${payloadStr}, "${escapeHtml(exp.type)}")' title="Click to edit payload">
-                        <span class="meta-item"><strong>Payload:</strong> ${escapeHtml(JSON.stringify(payload))} <span style="margin-left:8px; opacity:0.8;">✏️</span></span>
-                    </div>
-                </div>
-                <div class="exploit-actions">
-                    <button class="btn-danger full-width" onclick="runExploit()">
-                        <span class="icon">🚀</span> Launch Exploit
-                    </button>
-                </div>
-    `;
+
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'exploit-header';
+
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'exploit-icon';
+            iconDiv.textContent = icon;
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'exploit-title';
+
+            const h3 = document.createElement('h3');
+            h3.textContent = exp.type.replace(/_/g, ' ').toUpperCase();
+
+            const targetSpan = document.createElement('span');
+            targetSpan.className = 'exploit-target';
+            targetSpan.textContent = target;
+
+            titleDiv.appendChild(h3);
+            titleDiv.appendChild(targetSpan);
+
+            headerDiv.appendChild(iconDiv);
+            headerDiv.appendChild(titleDiv);
+
+
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'exploit-body';
+
+            const descP = document.createElement('p');
+            descP.textContent = exp.description || 'Automated Proof of Concept exploit generated by AI analysis.';
+
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'exploit-meta clickable';
+            metaDiv.title = 'Click to edit payload';
+            metaDiv.onclick = () => openEditPayloadModal(target, payload, exp.type);
+
+            const metaItemSpan = document.createElement('span');
+            metaItemSpan.className = 'meta-item';
+
+            const strongPayload = document.createElement('strong');
+            strongPayload.textContent = 'Payload: ';
+
+            const payloadContent = document.createTextNode(JSON.stringify(payload) + ' ');
+
+            const editIcon = document.createElement('span');
+            editIcon.style.cssText = "margin-left:8px; opacity:0.8;";
+            editIcon.textContent = '✏️';
+
+            metaItemSpan.appendChild(strongPayload);
+            metaItemSpan.appendChild(payloadContent);
+            metaItemSpan.appendChild(editIcon);
+            metaDiv.appendChild(metaItemSpan);
+
+            bodyDiv.appendChild(descP);
+            bodyDiv.appendChild(metaDiv);
+
+   
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'exploit-actions';
+
+            const runBtn = document.createElement('button');
+            runBtn.className = 'btn-danger full-width';
+            runBtn.onclick = runExploit;
+
+            const rocketIcon = document.createElement('span');
+            rocketIcon.className = 'icon';
+            rocketIcon.textContent = '🚀';
+
+            runBtn.appendChild(rocketIcon);
+            runBtn.appendChild(document.createTextNode(' Launch Exploit'));
+
+            actionsDiv.appendChild(runBtn);
+
+            el.appendChild(headerDiv);
+            el.appendChild(bodyDiv);
+            el.appendChild(actionsDiv);
             container.appendChild(el);
         });
     } catch (e) {
         console.error(e);
-        container.innerHTML = '<p class="error">Failed to load exploits</p>';
+        container.innerHTML = '';
+        const p = document.createElement('p');
+        p.className = 'error';
+        p.textContent = 'Failed to load exploits';
+        container.appendChild(p);
     }
 }
 

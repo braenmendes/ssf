@@ -36,26 +36,30 @@ def get_code_files (path :str )->Dict [str ,Dict [str ,str ]]:
     "app":{}
     }
 
-    if os .path .isfile (path ):
-        try :
-            with open (path ,"r",encoding ="utf-8")as f :
-                content =f .read ()
-                if path .endswith (".sql"):
-                    code_files ["sql"][os .path .basename (path )]=content 
-                else :
-                    code_files ["app"][os .path .basename (path )]=content 
-        except Exception :pass 
+    abs_path = os.path.abspath(path)
+    if not os.path.exists(abs_path):
+        return code_files
+
+    if os.path.isfile(abs_path):
+        try:
+            with open(abs_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                if abs_path.endswith(".sql"):
+                    code_files["sql"][os.path.basename(abs_path)] = content
+                else:
+                    code_files["app"][os.path.basename(abs_path)] = content
+        except Exception: pass
         return code_files 
 
     ignore_dirs ={".git","node_modules","__pycache__",".venv","dist","build",".next",".nuxt","tests","__mocks__","fixtures"}
     sql_exts ={".sql"}
     app_exts ={".js",".ts",".jsx",".tsx",".py",".json",".toml"}
 
-    for root ,dirs ,files in os .walk (path ):
-        dirs [:]=[d for d in dirs if d not in ignore_dirs ]
-        for file in files :
-            full_path =os .path .join (root ,file )
-            rel_path =os .path .relpath (full_path ,path )
+    for root, dirs, files in os.walk(abs_path):
+        dirs[:] = [d for d in dirs if d not in ignore_dirs]
+        for file in files:
+            full_path = os.path.join(root, file)
+            rel_path = os.path.relpath(full_path, abs_path)
 
             try :
                 if os .path .getsize (full_path )<100 *1024 :

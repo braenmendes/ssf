@@ -125,8 +125,14 @@ async def main():
     if args.analyze:
         from ssf.scanners.sast import SASTScanner
         
-        console.print(f"[cyan][*] Starting Static Analysis on: {args.analyze}[/]")
-        sast_scanner = SASTScanner(target_path=args.analyze, verbose=config.verbose)
+
+        target_path = os.path.abspath(args.analyze)
+        if not os.path.exists(target_path):
+             console.print(f"[bold red][!] Invalid path: {target_path}[/]")
+             return
+        
+        console.print(f"[cyan][*] Starting Static Analysis on: {target_path}[/]")
+        sast_scanner = SASTScanner(target_path=target_path, verbose=config.verbose)
         sast_report = sast_scanner.scan()
         
         if sast_report["findings"]:

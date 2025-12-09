@@ -38,3 +38,4 @@ class Wordlists :
     "avatars","files","images","public","documents","uploads","assets",
     "private","backup","logs","contracts","signatures"
     ]
+    COMMON_WEAK_PASSWORDS = ["password", "123456", "qwerty", "admin"]

@@ -52,12 +52,12 @@ class AuthScanner (BaseScanner ):
     async def _test_weak_password (self ):
         self .log ("    [*] Testing Password Policy...","cyan")
         email ="ssf_test_weak@example.com"
-        passwords =["123"]
+        passwords = ["123"] 
 
         if self.client.config.level >= 3:
-        
-            common_weak = ["password", "123456", "qwerty", "admin"]
-            passwords.extend(common_weak)
+
+            from ssf.core.config import Wordlists
+            passwords.extend(Wordlists.COMMON_WEAK_PASSWORDS)
 
         for password in passwords :
             try :
