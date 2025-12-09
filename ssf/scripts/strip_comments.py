@@ -10,7 +10,7 @@ def strip_python_comments(source):
     try:
         from tokenize import untokenize
         tokens = [t for t in tokenize.tokenize(io_obj.readline) if t.type != tokenize.COMMENT]
-        return untokenize(tokens)
+        return untokenize(tokens).decode('utf-8')
     except:
         return source
 
